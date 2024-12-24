@@ -8,13 +8,24 @@ This is the backend service for the Dream Analysis application, built using Flas
 
 ## Prerequisites
 
-Before setting up the backend, ensure you have the following installed:
 
 1. **Python 3.8+**  
    [Download Python](https://www.python.org/downloads/)
 
-2. **MySQL**  
-   [Download MySQL](https://dev.mysql.com/downloads/)
+2. **MySQL 终端测试连接azure云端数据库是否成功** 
+   *** 每次运行数据库应该都自动运行，但可以通过这个验证一下 ***
+   ```bash
+   mysql -u dreamdb -p -h 40.67.228.105 -P 3306 
+   ``` 
+   密码：Pass1234  
+
+   ```sql:
+   SHOW DATABASES;
+   USE dreamdb;
+   SHOW TABLES; 
+   SELECT * FROM user;
+   ``` 
+   应该有数据库结构（USER等）,最后一行展示目前数据库存储的用户数据；
 
 3. **pip** (comes with Python)  
    Verify installation:  
@@ -30,7 +41,7 @@ Before setting up the backend, ensure you have the following installed:
 ### Step 1: Step into the Project Directory
 
 ```bash
-cd dream-back
+cd SSE-WEBPROJECT2
 ```
 
 ---
@@ -64,84 +75,14 @@ Install the required Python packages listed in `requirements.txt`:
 pip install -r requirements.txt
 ```
 
----
-
-### Step 4: Configure the Database
-
-1. Start MySQL and create the database:
-   ```sql
-   CREATE DATABASE dreamdb CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-   ```
-
-2. Update the `config.py` file with your database credentials:
-   ```python
-   DB_USER = 'your_mysql_user'
-   DB_PASSWORD = 'your_mysql_password'
-   DB_HOST = '127.0.0.1'
-   DB_PORT = 3306
-   DB_NAME = 'dream_db'
-   ```
-
----
-
-### Step 5: Initialize the Database
-
-Run the following commands to initialize the database schema:
-
-```bash
-python
->>> from app import db
->>> db.create_all()
->>> exit()
-```
-
----
-
---------------------------------------------------------------------------------------------------------------
-对Step5做修正。
-如果在运行Step5出现失败的情况，可能是因为SQLAlchemy版本太高导致。
-通过一下方法来确认。
-在venv环境中运行pip list命令，查看SQLAlchemy的版本，如果版本超过了3.0.0
-那么Step5运行以下命令。注意DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME需要修改。
-
-
-DB_USER = 'dreamdb'
-DB_PASSWORD = 'Pass1234'
-
-DB_HOST = '127.0.0.1'
-DB_PORT = 3306
-DB_NAME = 'dreamdb'
-
-SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?charset=utf8mb4"
-SECRET_KEY = 'some-secret-key'
-
-
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
-db = SQLAlchemy(app)
-
-
-with app.app_context():
-    db.create_all()
-
-
-
-
-
------------------------------------------------------------------------------------------------------------------
-
-
-
-
-### Step 6: Start the Development Server
+### Step 4: Start the Development Server
 
 Run the backend service:
 
 ```bash
-python app.py
+python app.py  
+或者  
+venv/bin/python app.py
 ```
 
 The service will start at `http://127.0.0.1:5000`.

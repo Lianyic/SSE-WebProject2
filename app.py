@@ -1,12 +1,9 @@
 import os
-
 from flask import Flask, request, jsonify, make_response, send_from_directory, abort
 from models import db, User, Token, Dream
-from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 import uuid
 from flask_cors import CORS
-
 import config
 
 app = Flask(__name__)
@@ -18,13 +15,15 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
-CORS(app, supports_credentials=True)
+CORS(app, supports_credentials=True)  # 允许跨域时携带cookie
 
 
 def get_current_user():
     token = request.cookies.get('token')
     if not token:
+        print("No token found in cookies")  # 调试日志
         return None
+    print(f"Token found: {token}")  # 输出 token
     tk = Token.query.filter_by(token=token).first()
     if tk and tk.exp_dt > datetime.utcnow():
         return User.query.filter_by(uuid=tk.user_id).first()
@@ -37,11 +36,12 @@ def register():
     username = data.get('username')
     password = data.get('password')
 
+    # 检查用户名是否已经存在
     if User.query.filter_by(username=username).first():
         return jsonify({"error": "User exists"}), 400
 
-    hashed = generate_password_hash(password)
-    u = User(username=username, password=hashed)
+    # 创建用户对象并直接存储明文密码
+    u = User(username=username, password=password)
     db.session.add(u)
     db.session.commit()
     return jsonify({"msg": "Registered"}), 200
@@ -53,11 +53,12 @@ def login():
     username = data.get('username')
     password = data.get('password')
 
-    user = User.query.filter_by(username=username).first()
-    if not user or not check_password_hash(user.password, password):
+    # 查找用户并直接校验明文密码
+    user = User.query.filter_by(username=username, password=password).first()
+    if not user:
         return jsonify({"error": "Invalid credentials"}), 401
 
-    # create token
+    # 创建令牌
     t = str(uuid.uuid4())
     exp = datetime.utcnow() + timedelta(days=1)
     tk = Token(token=t, user_id=user.uuid, exp_dt=exp)
@@ -65,7 +66,8 @@ def login():
     db.session.commit()
 
     resp = make_response(jsonify({"msg": "Login success"}), 200)
-    resp.set_cookie('token', t, httponly=True, samesite='None', secure=True)
+    # 修改这里的 secure 为 False，以便在开发环境下使用 HTTP
+    resp.set_cookie('token', t, httponly=True, samesite='None', secure=False)  # 修改为 secure=False
     return resp
 
 
@@ -111,7 +113,7 @@ def analysis_new():
         return jsonify({"error": "Not authorized"}), 401
     data = request.json
     query = data.get('query')
-    # do some analysis
+    # 做一些分析
     answer = "Your dream means something nice..."
     a = Dream(user_id=user.uuid, content=query, answer=answer)
     db.session.add(a)

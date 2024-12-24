@@ -7,7 +7,7 @@ import os
 DB_USER = 'dreamdb'
 DB_PASSWORD = 'Pass1234'
 
-DB_HOST = '127.0.0.1'
+DB_HOST = '40.67.228.105'
 DB_PORT = 3306
 DB_NAME = 'dreamdb'
 
